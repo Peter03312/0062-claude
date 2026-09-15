@@ -1,0 +1,32 @@
+{
+  "name": "braid-equivalence-book",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "编带等价论证册 — 纯前端离线的 Artin 编带群等价逐步核查工具",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.2",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "jsdom": "^25.0.0",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.6",
+    "vitest": "^2.1.1"
+  }
+}

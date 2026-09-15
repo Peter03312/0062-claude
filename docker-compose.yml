@@ -1,0 +1,52 @@
+# Docker Compose
+#
+#   docker compose up web --build      # 仅常驻静态 web（默认）
+#   APP_PORT=9000 docker compose up -d # 用宿主 9000 端口
+#   docker compose build verify && docker compose run --rm verify
+#                                      # 一次性：单元测试 + 生产构建 + 首页冒烟
+#
+# web 常驻；verify 是一次性服务（compose run --rm），不参与 `up` 的常驻集合，
+# 因为它只做核查，不提供服务。
+
+services:
+  web:
+    build:
+      context: .
+      target: web
+    image: braid-book-web:local
+    ports:
+      # APP_PORT 可覆盖宿主端口，容器内固定 8080。
+      - "${APP_PORT:-8080}:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 4s
+
+  verify:
+    build:
+      context: .
+      target: verify
+    image: braid-book-verify:local
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      SMOKE_URL: http://web:8080
+    # 一次性运行：npm test（Vitest）+ npm run build（tsc+vite 生产构建）
+    # + 对 web 容器的首页冒烟。compose run 结束即退出，不常驻。
+    command:
+      - sh
+      - -c
+      - |
+        echo "== [1/3] 单元测试（Vitest，三类公理/逆元约简/反例/错误定位） =="
+        npm test
+        echo "== [2/3] 类型检查与生产构建 =="
+        npm run build
+        echo "== [3/3] 对常驻 web 的首页冒烟 =="
+        node scripts/smoke.mjs "$$SMOKE_URL"
+        echo "verify 完成：测试、构建、冒烟全部通过。"
+    profiles: ["verify"]
+    restart: "no"
